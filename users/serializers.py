@@ -2,14 +2,14 @@ from rest_framework import serializers
 from .models import User
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password=serializers.CharField(write_only=True, max_length=8)
+    password=serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
         model  = User
-        fields = ("id", "email", "fullname", "password", "role")
+        fields = ("id", "email", "full_name", "password", "role")
 
     def create(self, validated_data):
-        return User.objects.CreateUser(**validated_data)
+        return User.objects.create_user(**validated_data)
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,3 +25,5 @@ class ChangePasswordSerializer(serializers.Serializer):
         if not user.check_password(value):
             raise serializers.ValidationError("old password is incorrect")
         return value
+class LogoutSerializer(serializers.Serializer):
+    refresh= serializers.CharField(required=True)
