@@ -54,10 +54,11 @@ class Organization(models.Model):
 
 class Membership(models.Model):
     CHOICE=[
-        (1,"ADMIN"),
-        (2,"MEMBER")
+        ("admin","ADMIN"),
+        ("manager","MANAGER"),
+        ("member","MEMBER")
     ]
-    role = models.IntegerField(choices=CHOICE, default=2)
+    role = models.CharField(choices=CHOICE, default="member")
     user=models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete = models.CASCADE,

@@ -10,7 +10,7 @@ class User(AbstractUser):
     full_name=models.CharField(max_length=40)
     avatar=models.ImageField(upload_to='avatars/', null=True, blank=True)
     bio=models.TextField(blank=True)
-    role=models.CharField(choices=[(1, "ADMIN"), (2, "MANAGER"), (3, "MEMBER")], default=3)
+    role=models.CharField(choices=[("admin", "ADMIN"), ("manager", "MANAGER"), ("member", "MEMBER")], default="member")
     # take email as username
     USERNAME_FIELD = 'email'
     # ask about fullname except email and password
