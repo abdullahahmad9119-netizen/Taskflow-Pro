@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -86,3 +87,25 @@ class Membership(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.organizations.name} ({self.get_role_display()})"
+
+
+class Invitations(models.Model):
+
+    CHOICES=[
+        ("manager","MANAGER"),
+        ("member","MEMBER"),
+        ("admin","ADMIN")
+    ]
+    email = models.EmailField()
+    role = models.CharField(choices=CHOICES, default="member")
+    organization = models.ForeignKey(
+        "Organization",
+        on_delete = models.CASCADE,
+        related_name = "invitations"
+    )
+    token = models.UUIDField(default = uuid.uuid4, unique = True, editable = False)
+    created_at = models.DateTimeField(auto_now_add = True)
+    is_Accepted = models.BooleanField(default = False)
+
+    def __str__(self):
+        return f"invite {self.email} to {self.organization}"

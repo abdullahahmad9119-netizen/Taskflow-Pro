@@ -8,7 +8,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password=serializers.CharField(write_only=True, min_length=8)
-
     class Meta:
         model  = User
         fields = ("id", "email", "full_name", "password", "role")
@@ -30,5 +29,6 @@ class ChangePasswordSerializer(serializers.Serializer):
         if not user.check_password(value):
             raise serializers.ValidationError("old password is incorrect")
         return value
+
 class LogoutSerializer(serializers.Serializer):
     refresh= serializers.CharField(required=True)
