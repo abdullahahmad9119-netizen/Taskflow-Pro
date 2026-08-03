@@ -1,0 +1,39 @@
+from django.db import models
+from organizations.models import Organization
+from django.conf import settings
+class Project(models.Model):
+    STATUS_CHOICES=[
+        ("planning", "Planning"),
+        ("in_progress", "In Progress"),
+        ("completed", "Completed"),
+        ("on_hold", "On Hold")
+    ]
+    PRIORITY_CHOICES=[
+        ("low", "Low"),
+        ("medium", "Medium"),
+        ("high", "High"),
+        ("urgent", "Urgent")
+    ]
+    #ATTRIBUTES
+    name = models.CharField(max_length = 40)
+    description = models.TextField(blank=True ,null=True )
+    status = models.CharField(choices = STATUS_CHOICES, default = "planning")
+    priority = models.CharField(choices = PRIORITY_CHOICES, default = "medium")
+    organization = models.ForeignKey(
+        Organization,
+        on_delete = models.CASCADE,
+        related_name = "projects"
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete = models.CASCADE,
+        related_name = "created_projects",
+        null = True
+    )
+    created_at = models.DateTimeField(auto_now_add = True)
+    is_archived = models.BooleanField(default = False)
+
+    def __str__(self):
+        return self.name
+
+

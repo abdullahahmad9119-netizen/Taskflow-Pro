@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsOrganizationMember
 
+# ....................................ORGANIZATION VIEWS............................................
+
 class OrganizationListCreateAPIview(APIView):
     def get(self, request):
         user = request.user
@@ -48,7 +50,7 @@ class OrganizationDetailView(APIView):
         organization.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-# ........................................................................................................
+# ...........................................MEMBERSHIP VIEWS.............................................................
 class MembershipListCreateAPIView(APIView):
     def get(self, request):
         user = request.user
@@ -81,10 +83,13 @@ class MembershipDetailView(APIView):
         membership.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+# .........................................INVITATION VIEW..............................................
+
 class CreateInvitationView(APIView):
     def post(self, request, org_id):
         try:
-            organization = Organization.objects.get(org_id)
+            organization = Organization.objects.get(pk=org_id)
         except:
             return Response("organization doesnot exist")
 

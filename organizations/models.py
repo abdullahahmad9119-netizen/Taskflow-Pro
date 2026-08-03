@@ -4,6 +4,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
+# .................................ORGANIZATION...........................................
+
 class Organization(models.Model):
     name = models.CharField(max_length = 100, unique = True)
     slug = models.SlugField(unique = True)
@@ -53,6 +55,8 @@ class Organization(models.Model):
 
 
 
+# ........................................MEMBERSHIP.........................................
+
 class Membership(models.Model):
     CHOICE=[
         ("admin","ADMIN"),
@@ -83,12 +87,13 @@ class Membership(models.Model):
 
     @property
     def is_admin(self):
-        return self.role == 1
+        return self.role == "admin"
 
     def __str__(self):
         return f"{self.user} - {self.organizations.name} ({self.get_role_display()})"
 
 
+#..........................................INVITATIONS.............................................
 class Invitations(models.Model):
 
     CHOICES=[
@@ -109,3 +114,4 @@ class Invitations(models.Model):
 
     def __str__(self):
         return f"invite {self.email} to {self.organization}"
+

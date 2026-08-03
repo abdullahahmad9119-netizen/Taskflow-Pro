@@ -18,7 +18,6 @@ class InvitaionCreateSerializer(serializers.ModelSerializer):
         fields = ["email", "role"]
 
     def validate_email(self, value):
-
         org_id = self.context.get("org_id")
         if org_id:
             if Membership.objects.filter(
