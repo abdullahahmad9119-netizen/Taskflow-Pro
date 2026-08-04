@@ -1,13 +1,15 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from organizations.models import Membership, Organization
-from .serializers import ProjectSerializer
-from .models import Project
+from .serializers import ProjectSerializer, TaskSerializer, BulkTaskCreateSerializer
+from .models import Project, Task
 from .permissions import IsProjectManagerOrReadOnly
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+
+# ....................................PROJECT VIEWS...................................................
 
 class OrganizationProjectsListCreateView(APIView):
 
@@ -61,6 +63,7 @@ class ProjectDetailView(APIView):
         project = self.get_object(pk)
         project.delete()
         return Response("project deleted successfully", status=status.HTTP_200_OK)
+
 class ProjectArchiveView(APIView):
 
      permission_classes = [IsAuthenticated, IsProjectManagerOrReadOnly]
@@ -75,3 +78,69 @@ class ProjectArchiveView(APIView):
          project.save()
          return Response("archived", status=status.HTTP_200_OK)
 
+#      .......................................TASK VIEWS..................................................
+
+class TaskListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, project_id):
+        project = get_object_or_404(Project, pk=project_id)
+        tasks = Task.objects.filter(project=project, parent_task__isnull=True)
+        serializer = TaskSerializer(instance= tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, pk=project_id)
+        serializer = TaskSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(project=project)
+            return Response (serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TaskDetailView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        serializer = TaskSerializer(instance=task)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        serializer = TaskSerializer(task, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        task.delete()
+        return Response( status=status.HTTP_204_NO_CONTENT)
+
+class BulkTaskCreateView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        serializer = BulkTaskCreateSerializer(data=request.data, many=True )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class BulkStatusUpdateView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+
+        task_ids = request.data.get("tasks_ids", [])
+        is_completed = request.data.get("is_completed")
+
+        if task_ids or is_completed is None:
+            return Response("both id and status are required", status=status.HTTP_400_BAD_REQUEST)
+
+        updated_count = Task.objects.filter(id__in=task_ids).update(is_completed=is_completed)
+        return Response(f"successfully updated {updated_count} tasks", status=status.HTTP_200_OK)
