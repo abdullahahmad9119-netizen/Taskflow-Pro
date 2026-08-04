@@ -37,27 +37,35 @@ class Project(models.Model):
         return self.name
 
 
-# class Tag(models.Model):
-#
-#     name =  models.CharField(max_length=20)
-#     organization = models.ForeignKey(
-#         Organization,
-#         on_delete = models.CASCADE,
-#         related_name = "tags"
-#     )
-#
-# class Task(models.Model):
-#
-#     project = models.ForeignKey(
-#         Project,
-#         on_delete = models.CASCADE,
-#         related_name = "task")
-#     parent_task = models.ForeignKey(
-#         'self',
-#         blank = True,
-#         null = True,
-#
-#     )
+class Tag(models.Model):
+
+    name =  models.CharField(max_length=20)
+    organization = models.ForeignKey(
+        Organization,
+        on_delete = models.CASCADE,
+        related_name = "tags"
+    )
+
+class Task(models.Model):
+
+    project = models.ForeignKey(
+        Project,
+        on_delete = models.CASCADE,
+        related_name = "tasks")
+    parent_task = models.ForeignKey(
+        'self',
+        blank = True,
+        null = True,
+        on_delete = models.CASCADE,
+        related_name = 'subtasks')
+    title = models.CharField(max_length = 100 )
+    description = models.TextField(blank = True,  null = True)
+    is_completed = models.BooleanField(default=False)
+    tag = models.ManyToManyField(
+        Tag,
+        related_name = "tags"
+    )
+
 
 
 
