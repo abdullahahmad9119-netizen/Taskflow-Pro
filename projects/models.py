@@ -37,3 +37,28 @@ class Project(models.Model):
         return self.name
 
 
+# class Tag(models.Model):
+#
+#     name =  models.CharField(max_length=20)
+#     organization = models.ForeignKey(
+#         Organization,
+#         on_delete = models.CASCADE,
+#         related_name = "tags"
+#     )
+#
+# class Task(models.Model):
+#
+#     project = models.ForeignKey(
+#         Project,
+#         on_delete = models.CASCADE,
+#         related_name = "task")
+#     parent_task = models.ForeignKey(
+#         'self',
+#         blank = True,
+#         null = True,
+#
+#     )
+
+
+
+
