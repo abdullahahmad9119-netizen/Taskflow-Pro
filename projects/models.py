@@ -1,6 +1,7 @@
 from django.db import models
 from organizations.models import Organization
 from django.conf import settings
+from users.models import User
 class Project(models.Model):
     STATUS_CHOICES=[
         ("planning", "Planning"),
@@ -63,8 +64,16 @@ class Task(models.Model):
     is_completed = models.BooleanField(default=False)
     tag = models.ManyToManyField(
         Tag,
-        related_name = "tags"
+        related_name = "tags")
+    assignee = models.ForeignKey(
+        User,
+        on_delete = models.CASCADE,
+        blank = True,
+        null = True,
+        related_name = "tasks"
     )
+
+
 
 
 

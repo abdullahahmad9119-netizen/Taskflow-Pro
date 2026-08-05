@@ -1,5 +1,9 @@
 from django.shortcuts import render
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import TaskFilter
+from rest_framework import filters
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from organizations.models import Membership, Organization
 from .serializers import ProjectSerializer, TaskSerializer, BulkTaskCreateSerializer
 from .models import Project, Task
@@ -144,3 +148,51 @@ class BulkStatusUpdateView(APIView):
 
         updated_count = Task.objects.filter(id__in=task_ids).update(is_completed=is_completed)
         return Response(f"successfully updated {updated_count} tasks", status=status.HTTP_200_OK)
+
+class TaskMarkDoneView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        task = get_object_or_404(Task,pk=pk)
+        task.is_completed=True
+        task.save()
+        return Response(status=status.HTTP_200_OK)
+
+class TaskAssignToMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        task.assignee=request.user
+        task.save()
+        return Response("task has been assigned to you", status=status.HTTP_200_OK)
+
+class TaskMoveToProjectView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+
+        task = get_object_or_404(Task, pk=pk)
+
+        new_project_id = request.data.get("project_id")
+        if not new_project_id:
+            return Response("project id is required", status=status.HTTP_400_BAD_REQUEST)
+        task.project_id = new_project_id
+        task.save()
+        return Response(status=status.HTTP_200_OK)
+
+class MyTaskListView(ListAPIView):
+
+    queryset = Task.objects.select_related("project","assignee").all()
+    serializer_class = TaskSerializer
+
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,]
+    filterset_class = TaskFilter
+
+    search_fields = ["title", "description"]
+    ordering_fields = ["due_date", "priority", "created_at"]
+    ordering = ["due_date" ]
+
