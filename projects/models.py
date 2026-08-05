@@ -1,5 +1,6 @@
 from django.db import models
 from organizations.models import Organization
+from .validators import validate_file_size
 from django.conf import settings
 from users.models import User
 class Project(models.Model):
@@ -72,6 +73,25 @@ class Task(models.Model):
         null = True,
         related_name = "tasks"
     )
+
+class TaskAttachment(models.Model):
+    task = models.ForeignKey(
+        Task,
+        on_delete = models.CASCADE,
+        # related_name ="task_attachments"
+    )
+    file = models.FileField(
+        upload_to="task_attachments/",
+        validators=[validate_file_size])
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete =  models.CASCADE,
+        # related_name = "task_attachments"
+    )
+
+    def __str__(self):
+        return f" attachment {self.id} for task {self.task.title} "
 
 
 

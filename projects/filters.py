@@ -12,7 +12,7 @@ class TaskFilter(django_filters.FilterSet):
         model = Task
         fields = {
             'is_completed': ['exact'],
-            'priority': ['exact', 'in'],
+            # 'priority': ['exact', 'in'],
             'assignee': ['exact'],
             'project': ['exact'],
         }

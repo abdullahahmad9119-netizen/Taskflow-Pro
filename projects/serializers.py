@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Project, Task , Tag
+from .models import Project, Task , Tag, TaskAttachment
 
 # ..........................................PROJECT SERIALIZER.............................................
 class ProjectSerializer(serializers.ModelSerializer):
@@ -60,3 +60,11 @@ class BulkTaskCreateSerializer(serializers.ModelSerializer):
             'project',
         ]
         list_serializer_class = TaskBatchSerializer
+
+# .........................................TASK ATTACHMENT..................................................
+
+class TaskAttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskAttachment
+        fields = ['id', 'task', 'file', 'uploaded_at', 'uploaded_by']
+        read_only_fields = ['uploaded_at', 'uploaded_by']

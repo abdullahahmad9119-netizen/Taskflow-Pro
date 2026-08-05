@@ -5,17 +5,20 @@ from rest_framework import filters
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from organizations.models import Membership, Organization
-from .serializers import ProjectSerializer, TaskSerializer, BulkTaskCreateSerializer
-from .models import Project, Task
+from .serializers import ProjectSerializer, TaskSerializer, BulkTaskCreateSerializer, TaskAttachmentSerializer
+from .models import Project, Task, TaskAttachment
 from .permissions import IsProjectManagerOrReadOnly
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from rest_framework.parsers import FormParser,MultiPartParser
 
 # ....................................PROJECT VIEWS...................................................
 
+
 class OrganizationProjectsListCreateView(APIView):
+
 
     def get(self, request, org_id):
         if not (request.user == Membership.objects.filter(user=request.user , organization_id = org_id )):
@@ -27,7 +30,7 @@ class OrganizationProjectsListCreateView(APIView):
 
     def post(self, request, org_id):
         if not (request.user == Membership.objects.filter(user=request.user , organization_id = org_id )):
-            return Response("not a memeber of the organization", status=status.HTTP_403_FORBIDDEN)
+            return Response("not a member of the organization", status=status.HTTP_403_FORBIDDEN)
 
         if Membership.role not in ['ADMIN', 'MANAGER']:
             return Response("only admins and managers can create projects", status=status.HTTP_403_FORBIDDEN)
@@ -68,6 +71,7 @@ class ProjectDetailView(APIView):
         project.delete()
         return Response("project deleted successfully", status=status.HTTP_200_OK)
 
+
 class ProjectArchiveView(APIView):
 
      permission_classes = [IsAuthenticated, IsProjectManagerOrReadOnly]
@@ -82,7 +86,8 @@ class ProjectArchiveView(APIView):
          project.save()
          return Response("archived", status=status.HTTP_200_OK)
 
-#      .......................................TASK VIEWS..................................................
+#.............................................TASK VIEWS..................................................
+
 
 class TaskListCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -100,6 +105,7 @@ class TaskListCreateView(APIView):
             serializer.save(project=project)
             return Response (serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class TaskDetailView(APIView):
 
@@ -123,6 +129,7 @@ class TaskDetailView(APIView):
         task.delete()
         return Response( status=status.HTTP_204_NO_CONTENT)
 
+
 class BulkTaskCreateView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -133,6 +140,7 @@ class BulkTaskCreateView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class BulkStatusUpdateView(APIView):
 
@@ -149,6 +157,7 @@ class BulkStatusUpdateView(APIView):
         updated_count = Task.objects.filter(id__in=task_ids).update(is_completed=is_completed)
         return Response(f"successfully updated {updated_count} tasks", status=status.HTTP_200_OK)
 
+
 class TaskMarkDoneView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -158,6 +167,7 @@ class TaskMarkDoneView(APIView):
         task.save()
         return Response(status=status.HTTP_200_OK)
 
+
 class TaskAssignToMeView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -166,6 +176,7 @@ class TaskAssignToMeView(APIView):
         task.assignee=request.user
         task.save()
         return Response("task has been assigned to you", status=status.HTTP_200_OK)
+
 
 class TaskMoveToProjectView(APIView):
     permission_classes = [IsAuthenticated]
@@ -181,6 +192,7 @@ class TaskMoveToProjectView(APIView):
         task.save()
         return Response(status=status.HTTP_200_OK)
 
+
 class MyTaskListView(ListAPIView):
 
     queryset = Task.objects.select_related("project","assignee").all()
@@ -195,4 +207,57 @@ class MyTaskListView(ListAPIView):
     search_fields = ["title", "description"]
     ordering_fields = ["due_date", "priority", "created_at"]
     ordering = ["due_date" ]
+
+
+
+ # ......................................TaskAttachmentViews...................................................
+
+
+
+class TaskAttachmentListCreateView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    parser_classes = [FormParser, MultiPartParser]
+
+    def get(self, request, task_id):
+        attachemnts = TaskAttachment.objects.filter(task_id=task_id)
+        serializer = TaskAttachmentSerializer(attachemnts, many=True)
+        return Response(serializer.data , status=status.HTTP_200_OK)
+
+    def post(self, request, task_id):
+        # task = get_object_or_404(Task, pk=task_id)
+        serializer = TaskAttachmentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TaskAttachmentDetailView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, task_id, pk):
+
+        try:
+            attachment = TaskAttachment.objects.get(task_id=task_id, pk=pk)
+        except TaskAttachment.DoesNotExist:
+            return Response("attachment does not exists", status=status.HTTP_404_NOT_FOUND)
+
+        serializer = TaskAttachmentSerializer(attachment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, task_id, pk):
+
+        try :
+            attachment = TaskAttachment.objects.get(task_id=task_id, pk=pk)
+        except TaskAttachment.DoesNotExist:
+            return Response("attachment does not exists", status=status.HTTP_404_NOT_FOUND)
+
+        if request.user != attachment.uploaded_by:
+            return Response("you cannot delete this attachment as you are not the author", status=status.HTTP_403_FORBIDDEN)
+
+        attachment.delete()
+        return Response("attachment deleted",status=status.HTTP_200_OK )
 

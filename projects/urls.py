@@ -12,5 +12,8 @@ urlpatterns=[
     path('tasks/<int:pk>/mark-done/', TaskMarkDoneView.as_view(), name='task-mark-done'),
     path('tasks/<int:pk>/assign-to-me/', TaskAssignToMeView.as_view(), name='task-assign-to-me'),
     path('tasks/<int:pk>/move-to-project/', TaskMoveToProjectView.as_view(), name='task-move-to-project'),
-    path('me/tasks/', MyTaskListView.as_view(), name='my-tasks-list')
+    path('me/tasks/', MyTaskListView.as_view(), name='my-tasks-list'),
+
+    path('tasks/<int:task_id>/attachments/',TaskAttachmentListCreateView.as_view(),name='task-attachment-list-create',),
+    path('tasks/<int:task_id>/attachments/<int:pk>/',TaskAttachmentDetailView.as_view(),name='task-attachment-detail',),
 ]
