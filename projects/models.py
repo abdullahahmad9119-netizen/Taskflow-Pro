@@ -1,6 +1,6 @@
 from django.db import models
 from organizations.models import Organization
-from .validators import validate_file_size
+from api.projects.utils.validators import validate_file_size
 from django.conf import settings
 from users.models import User
 class Project(models.Model):

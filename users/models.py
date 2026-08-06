@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from .managers import CreateUserManager
-from PIL import Image
+from api.users.utils.managers import CreateUserManager
+
 
 class User(AbstractUser):
     # Attributes

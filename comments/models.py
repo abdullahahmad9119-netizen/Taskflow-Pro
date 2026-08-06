@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from projects.models import Task
 
+
 class Comment(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,

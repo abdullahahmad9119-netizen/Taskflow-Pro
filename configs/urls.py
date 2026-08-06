@@ -21,10 +21,10 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/users/', include('users.urls')),
-    path('api/v1/', include('organizations.urls')),
-    path ('api/v1/PROJECT/', include('projects.urls')),
-    path("api/v1/COMMENT/", include("comments.urls"))
+    path('api/v1/users/', include('api.users.urls')),
+    path('api/v1/', include('api.organizations.urls')),
+    path ('api/v1/PROJECT/', include('api.projects.urls')),
+    path("api/v1/COMMENT/", include("api.comments.urls"))
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
